@@ -23,7 +23,7 @@ async def home(request: Request):
 
 @app.get("/submit", response_class=HTMLResponse)
 async def page(request: Request, query: str = Query(...)):
-    query = query.replace(" ", "_")
+    query = query.replace(" ", "_").title()
     encodedQuery = quote_plus(query)
     redis_data = redis_client.get(encodedQuery)
     print(redis_data)
@@ -54,7 +54,8 @@ async def page(request: Request, query: str = Query(...)):
             return templates.TemplateResponse("summary.html", {"request": request, "page": page, "summary": summary, "title": title})
 @app.get('/submit/api')
 async def api(request: Request, query: str = Query(...)):
-    query = query.replace(" ", "_")
+    query = query.replace(" ", "_").title()
+
     encodedQuery = quote_plus(query)
     redis_data = redis_client.get(encodedQuery)
     print(redis_data)
