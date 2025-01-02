@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/static/summarystyles.css">
+</head>
+<body>
+    <h1 id="title">{{title}}</h1>
+    <p>{{summary}}</p>
+    <button id="moreInfo" type="button">More Info</button>
+</body>
+<script>
+    const title = document.querySelector("#title");
+    const moreInfo = document.querySelector("#moreInfo");
+    moreInfo.addEventListener("click", function (e) {
+        const link = document.createElement("a");
+        link.href = "{{page}}";
+        link.textContent = "{{page}}"
+        link.target = "_blank"
+        document.body.append(link);
+    }, {once: true});
+
+</script>
+
+<noscript>
+<style>
+#moreInfo {
+    opacity: 0.1;
+    cursor:not-allowed;
+}
+</style>
+</noscript>
+</html>

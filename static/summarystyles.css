@@ -1,0 +1,124 @@
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: #f0f0f0;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;  /* Ensures the body takes at least the full height of the viewport */
+    padding: 20px;
+    flex-direction: column; /* Ensure content stacks vertically */
+}
+
+/* Container Styling */
+.container {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 900px;
+    overflow-y: auto; /* Allows scrolling only within content if needed */
+}
+
+/* Header Styling */
+h1 {
+    font-size: 2em; /* Reduced size */
+    color: #2C3E50;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Paragraph Styling */
+p {
+    font-size: 1.1em; /* Slightly smaller for readability */
+    color: #555;
+    line-height: 1.8;
+    text-align: justify; /* Justifies text for a clean look */
+    margin-bottom: 20px;
+    word-wrap: break-word; /* Ensures no overflow */
+}
+
+/* Add spacing between paragraphs */
+p + p {
+    margin-top: 15px;
+}
+
+/* Link Styling (if any) */
+a {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    p {
+        font-size: 1em;
+    }
+
+    .container {
+        padding: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5em;
+    }
+
+    p {
+        font-size: 0.9em;
+    }
+
+    .container {
+        padding: 20px;
+    }
+}
+/* Button Styling */
+button {
+    background-color: #3498db; /* Matches the link color */
+    color: white;
+    font-size: 1em;
+    font-weight: 600;
+    padding: 12px 20px; /* Adds some padding for a comfortable click area */
+    border: none;
+    border-radius: 8px; /* Rounded corners for a modern look */
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: all 0.3s ease; /* Smooth hover effect */
+}
+
+button:hover {
+    background-color: #2980b9; /* Darker shade for hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Slightly larger shadow */
+    transform: translateY(-2px); /* Subtle lift effect */
+}
+
+button:active {
+    background-color: #1c5d85; /* Even darker shade for active state */
+    transform: translateY(0); /* Resets lift effect */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Smaller shadow */
+}
