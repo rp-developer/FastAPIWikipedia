@@ -49,7 +49,7 @@ async def page(request: Request, query: Optional[str] = Query(None)):
     
     else:
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(query)}")
+            response = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(query)}", follow_redirects=True)
             responseData = response.json()
             summary = responseData['extract']
             page = responseData['content_urls']['desktop']['page']
@@ -86,7 +86,7 @@ async def api(request: Request, query: Optional[str] = Query(None)):
     
     else:
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(query)}")
+            response = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(query)}", follow_redirects=True)
             responseData = response.json()
             summary = responseData['extract']
             page = responseData['content_urls']['desktop']['page']
