@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Query, HTTPException
+from fastapi import FastAPI, Request, Query, HTTPException, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -37,14 +37,19 @@ async def home(request: Request):
 
 
 @app.get("/submit", response_class=HTMLResponse)
-async def page(request: Request, query: Optional[str] = Query(None)):
+async def page(request: Request, query: str):
     if query == None:
         error = "No query parameters detected"
         return templates.TemplateResponse("404.html", {
             "error": error,
             "request": request
         }, status_code=400)
-        
+    if query == "":
+        error = "No search detected"
+        return templates.TemplateResponse("404.html", {
+            "error": error,
+            "request": request
+        })
     encodedQuery = quote_plus(query.lower().replace(" ", "_").title())
     redis_data = await redis_client.get(encodedQuery)
     if redis_data:
@@ -55,8 +60,7 @@ async def page(request: Request, query: Optional[str] = Query(None)):
             "summary": cached_data['summary'], 
             "title": cached_data['title']
             })
-    
-    else:
+    if not redis_data:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(query)}", follow_redirects=True)
             print(response.status_code)
@@ -104,10 +108,9 @@ async def api(query: Optional[str] = Query(None)):
             "title": cached_data['title'],
             }
     
-    else:
+    if not redis_data:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(query)}", follow_redirects=True)
-            print(response.status_code)
             if response.status_code == 404:
                 queryAutoCorrect = str(autocorrect(query))
                 encodedAutoCorrectQuery = quote_plus(queryAutoCorrect.lower().replace(" ", "_").title())
@@ -119,17 +122,18 @@ async def api(query: Optional[str] = Query(None)):
                         "error": error,
                     }
                 response = responseAutoCorrect
-            responseData = response.json()
-            summary = responseData['extract']
-            page = responseData['content_urls']['desktop']['page']
-            title = responseData['title']
-            
+            if not response.status_code == 404:
+                responseData = response.json()
+                summary = responseData['extract']
+                page = responseData['content_urls']['desktop']['page']
+                title = responseData['title']
+                
 
-            redisSetData = {
-                'page': page, 
-                'title':title, 
-                'summary':summary}
+                redisSetData = {
+                    'page': page, 
+                    'title':title, 
+                    'summary':summary}
 
-            await redis_client.setex(encodedQuery, 3600, json.dumps(redisSetData)) 
+                await redis_client.setex(encodedQuery, 3600, json.dumps(redisSetData)) 
 
-            return {"page": page, "summary": summary, "title": title}
+                return {"page": page, "summary": summary, "title": title}
