@@ -8,7 +8,19 @@ from typing import Optional
 import httpx
 import json
 import os
+
+from symspellpy import SymSpell, Verbosity
 app = FastAPI()
+sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
+# Load a frequency dictionary
+dictionary_path = "frequency_dictionary_en_82_765.txt"
+sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
+
+# Autocorrect using SymSpell
+def autocorrect(query: str) -> str:
+    suggestions = sym_spell.lookup_compound(query, max_edit_distance=2)
+    return suggestions[0].term if suggestions else query
+
 
 redis_host = os.environ.get("DATABASE_URL", "redis://localhost:6379")
 redis_client = aioredis.from_url(redis_host)
@@ -32,12 +44,9 @@ async def page(request: Request, query: Optional[str] = Query(None)):
             "error": error,
             "request": request
         }, status_code=400)
-    
-    query = query.replace(" ", "_").title()
-    
-    encodedQuery = quote_plus(query)
+        
+    encodedQuery = quote_plus(query.lower().replace(" ", "_").title())
     redis_data = await redis_client.get(encodedQuery)
-    print(redis_data)
     if redis_data:
         cached_data = json.loads(redis_data)
         return templates.TemplateResponse("summary.html", {
@@ -52,11 +61,17 @@ async def page(request: Request, query: Optional[str] = Query(None)):
             response = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(query)}", follow_redirects=True)
             print(response.status_code)
             if response.status_code == 404:
-                error = "Page not found"
-                return templates.TemplateResponse("404.html", {
-                    "error": error,
-                    "request": request
-                })
+                queryAutoCorrect = str(autocorrect(query))
+                encodedAutoCorrectQuery = quote_plus(queryAutoCorrect.lower().replace(" ", "_").title())
+                print(encodedAutoCorrectQuery)
+                responseAutoCorrect = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(encodedAutoCorrectQuery)}", follow_redirects=True)
+                if responseAutoCorrect.status_code == 404:
+                    error = "Page not found. Check for a typo in your search"
+                    return templates.TemplateResponse("404.html", {
+                        "error": error,
+                        "request": request
+                    })
+                response = responseAutoCorrect
             responseData = response.json()
             summary = responseData['extract']
             page = responseData['content_urls']['desktop']['page']
@@ -71,16 +86,14 @@ async def page(request: Request, query: Optional[str] = Query(None)):
 
             return templates.TemplateResponse("summary.html", {"request": request, "page": page, "summary": summary, "title": title})
 @app.get('/submit/api')
-async def api(request: Request, query: Optional[str] = Query(None)):
+async def api(query: Optional[str] = Query(None)):
     if query is None:
         error = {"error": "No query parameters detected"}
         raise HTTPException(
             status_code=400,
             detail=error
         )
-    query = query.replace(" ", "_").title()
-
-    encodedQuery = quote_plus(query)
+    encodedQuery = quote_plus(query.lower().replace(" ", "_").title())
     redis_data = await redis_client.get(encodedQuery)
     print(redis_data)
     if redis_data:
@@ -96,15 +109,20 @@ async def api(request: Request, query: Optional[str] = Query(None)):
             response = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(query)}", follow_redirects=True)
             print(response.status_code)
             if response.status_code == 404:
-                error = "Page not found"
-                return {
-                    "error": error,
-                }
+                queryAutoCorrect = str(autocorrect(query))
+                encodedAutoCorrectQuery = quote_plus(queryAutoCorrect.lower().replace(" ", "_").title())
+                print(encodedAutoCorrectQuery)
+                responseAutoCorrect = await client.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{(encodedAutoCorrectQuery)}", follow_redirects=True)
+                if responseAutoCorrect.status_code == 404:
+                    error = "Page not found. Check for a typo in your query"
+                    return {
+                        "error": error,
+                    }
+                response = responseAutoCorrect
             responseData = response.json()
-            if 'extract' in responseData and 'content_urls' in responseData:
-                summary = responseData['extract']
-                page = responseData['content_urls']['desktop']['page']
-                title = responseData['title']
+            summary = responseData['extract']
+            page = responseData['content_urls']['desktop']['page']
+            title = responseData['title']
             
 
             redisSetData = {
