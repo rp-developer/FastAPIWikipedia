@@ -22,8 +22,8 @@ def autocorrect(query: str) -> str:
     return suggestions[0].term if suggestions else query
 
 
-redis_host = os.environ.get("DATABASE_URL", "redis://localhost:6379")
-redis_client = aioredis.from_url(redis_host)
+redis_host = os.environ.get("REDIS_URL", "redis://localhost:6379")
+redis_client = aioredis.from_url(redis_host, ssl=True)
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
