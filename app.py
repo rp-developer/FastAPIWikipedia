@@ -23,7 +23,7 @@ def autocorrect(query: str) -> str:
 
 
 redis_host = os.environ.get("REDIS_URL", "redis://localhost:6379")
-redis_client = aioredis.from_url(redis_host, ssl=True)
+redis_client = aioredis.from_url(redis_host)
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
