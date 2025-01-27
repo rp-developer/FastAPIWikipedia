@@ -12,6 +12,7 @@ import os
 from symspellpy import SymSpell, Verbosity
 app = FastAPI()
 sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
+
 # Load a frequency dictionary
 dictionary_path = "frequency_dictionary_en_82_765.txt"
 sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
