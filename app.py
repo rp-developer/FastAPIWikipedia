@@ -21,9 +21,8 @@ def autocorrect(query: str) -> str:
     suggestions = sym_spell.lookup_compound(query, max_edit_distance=2)
     return suggestions[0].term if suggestions else query
 
-
-redis_host = os.environ.get("REDIS_URL", "redis://localhost:6379")
-redis_client = aioredis.from_url(redis_host)
+redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+redis_client = aioredis.from_url(redis_url)
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
